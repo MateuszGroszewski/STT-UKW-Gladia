@@ -3,7 +3,7 @@ import soundfile as sf
 import noisereduce as nr
 
 class NoiseCancel:
-    def __init__(self, file_path, output_file_path, noise_clip_duration: float = 0.5, stationary: bool = True, prop_decrease: float = 1.0):
+    def __init__(self, file_path = None, output_file_path = None, noise_clip_duration: float = 0.5, stationary: bool = True, prop_decrease: float = 1.0):
         """
         Możesz eksperymentować z parametrami:
             - Zwiększ noise_clip_duration jeśli masz dłuższy fragment czystego szumu.
@@ -20,6 +20,8 @@ class NoiseCancel:
 
     def applyNoiseReduction(self):
         try:
+            if self.file_path is None or self.output_file_path is None:
+                raise ValueError("There is no file_path or output_file_path")
 
             data, rate = sf.read(self.file_path)
 
@@ -48,6 +50,20 @@ class NoiseCancel:
 
         except Exception as e:
             print(f'Error occurred: {e}')
+
+
+
+    def realTimeReduction(self, audio_data, rate, noise_profile):
+        audio_after_reduction = nr.reduce_noise(
+            y=audio_data,
+            sr=rate,
+            y_noise=noise_profile[:len(audio_data)],
+            stationary=self.stationary,
+            prop_decrease=self.prop_decrease
+        )
+
+        return audio_after_reduction.astype(np.int16).tobytes()
+
 
 
 if __name__ == "__main__":
